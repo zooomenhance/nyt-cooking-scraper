@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Weekly Meal Planner & Shopping Helper</title>
+  <title>Weekly Meal Planner & AI Assistant</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Generate ingredient-optimized weekly meal plans and shopping lists directly from your NYT Cooking database.">
+  <meta name="description" content="Generate ingredient-optimized weekly meal plans and shopping lists directly from your NYT Cooking database, guided by an AI assistant.">
   
   <!-- Modern Outfit Typography from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,10 +26,34 @@
     <header class="app-header">
       <div class="logo-area">
         <span class="logo-emoji">🍲</span>
-        <h1>Meal Planner</h1>
+        <div>
+          <h1>Meal Planner</h1>
+          <p>Optimized grocery shopping & recipe curation</p>
+        </div>
       </div>
-      <p>Optimized grocery shopping & recipe curation</p>
+      
+      <!-- Settings Button -->
+      <button id="open-settings-btn" class="settings-trigger-btn" title="AI Settings">
+        <span>⚙️ Setup AI Chat</span>
+      </button>
     </header>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" style="display: none;">
+      <div class="settings-card card">
+        <button id="close-settings-btn" class="modal-close" aria-label="Close settings">&times;</button>
+        <h3>🤖 Setup Gemini AI Assistant</h3>
+        <p class="settings-desc">To talk with the planner, enter a Gemini API Key. Your key is stored locally in your browser's private secure storage and is never sent to any server other than Google's API.</p>
+        
+        <div class="form-group">
+          <label class="form-label" for="api-key-input">Gemini API Key</label>
+          <input type="password" id="api-key-input" placeholder="AIzaSy..." class="form-input text-input">
+          <span class="input-tip">Get a free key in 10 seconds from <a href="https://aistudio.google.com/" target="_blank" style="color: var(--color-primary); text-decoration: underline;">Google AI Studio</a></span>
+        </div>
+        
+        <button id="save-settings-btn" class="glow-button" style="margin-top: 15px;">Save Key & Connect</button>
+      </div>
+    </div>
 
     <!-- Loading Screen -->
     <div id="loading-overlay" class="loading-overlay">
@@ -40,51 +64,80 @@
     <!-- Main Content Grid -->
     <main class="main-grid">
       
-      <!-- Left Panel: Controls -->
+      <!-- Left Panel: Controls & Chat -->
       <section class="controls-panel card">
-        <h2>Your Preferences</h2>
-        <p class="panel-subtitle">Tailor your menu for the week</p>
         
-        <div class="form-group">
-          <label class="form-label" for="meals-slider">Number of Meals: <span id="meals-value" class="highlight-val">5</span></label>
-          <input type="range" id="meals-slider" min="1" max="7" value="5" class="slider-input">
+        <!-- Planner Interface Toggle Tabs -->
+        <div class="panel-tabs">
+          <button id="tab-manual-btn" class="panel-tab active">Manual Plan</button>
+          <button id="tab-ai-btn" class="panel-tab">AI Chat Helper</button>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="category-select">Meal Category</label>
-          <select id="category-select" class="form-input">
-            <option value="Dinner" selected>Dinner</option>
-            <option value="Lunch">Lunch</option>
-            <option value="Breakfast">Breakfast</option>
-            <option value="Desserts">Desserts / Sweet Treats</option>
-            <option value="all">Any Category (Mix & Match)</option>
-          </select>
+        <!-- Tab 1: Manual Controls -->
+        <div id="manual-controls-section" class="tab-sectionactive">
+          <div class="form-group">
+            <label class="form-label" for="meals-slider">Number of Meals: <span id="meals-value" class="highlight-val">5</span></label>
+            <input type="range" id="meals-slider" min="1" max="7" value="5" class="slider-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="category-select">Meal Category</label>
+            <select id="category-select" class="form-input">
+              <option value="Dinner" selected>Dinner</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Desserts">Desserts / Sweet Treats</option>
+              <option value="all">Any Category (Mix & Match)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="include-input">Include Ingredients / Keywords</label>
+            <input type="text" id="include-input" placeholder="e.g. chicken thighs, ground turkey" class="form-input text-input">
+            <span class="input-tip">Separate multiple ingredients with commas (OR matching)</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="exclude-input">Exclude Ingredients / Keywords</label>
+            <input type="text" id="exclude-input" placeholder="e.g. cilantro, shrimp" class="form-input text-input">
+            <span class="input-tip">Separate with commas (all will be omitted)</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Minimum Recipe Rating</label>
+            <div class="rating-selector">
+              <button class="rating-btn" data-val="3">3★+</button>
+              <button class="rating-btn active" data-val="4">4★+</button>
+              <button class="rating-btn" data-val="4.5">4.5★+</button>
+            </div>
+          </div>
+
+          <button id="generate-btn" class="glow-button">
+            <span>Generate Meal Plan</span>
+          </button>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="include-input">Include Ingredients / Keywords</label>
-          <input type="text" id="include-input" placeholder="e.g. chicken thighs, ground turkey" class="form-input text-input">
-          <span class="input-tip">Separate multiple ingredients with commas (OR matching)</span>
-        </div>
+        <!-- Tab 2: AI Chat Assistant Section (Hidden initially) -->
+        <div id="ai-chat-section" class="tab-section" style="display: none;">
+          <div id="chat-messages-container" class="chat-messages-container">
+            <div class="chat-message assistant">
+              <div class="message-content">
+                Hello! Tell me what you'd like to cook this week (e.g. <em>"Plan 3 dinners using chicken thighs and spinach with no cilantro"</em> or <em>"Suggest some quick vegetarian dinners"</em>) and I'll find them in your database!
+              </div>
+            </div>
+          </div>
+          
+          <!-- Locked State (when key is missing) -->
+          <div id="chat-key-missing" class="chat-lock-msg" style="display: none;">
+            <p>🔒 Setup your Gemini API Key in Settings (top right) to enable conversational meal planning!</p>
+          </div>
 
-        <div class="form-group">
-          <label class="form-label" for="exclude-input">Exclude Ingredients / Keywords</label>
-          <input type="text" id="exclude-input" placeholder="e.g. cilantro, shrimp" class="form-input text-input">
-          <span class="input-tip">Separate with commas (all will be omitted)</span>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Minimum Recipe Rating</label>
-          <div class="rating-selector">
-            <button class="rating-btn" data-val="3">3★+</button>
-            <button class="rating-btn active" data-val="4">4★+</button>
-            <button class="rating-btn" data-val="4.5">4.5★+</button>
+          <div id="chat-input-area" class="chat-input-area">
+            <input type="text" id="chat-text-input" placeholder="Ask Gemini..." class="form-input text-input">
+            <button id="chat-send-btn" class="chat-send-btn">Send</button>
           </div>
         </div>
 
-        <button id="generate-btn" class="glow-button">
-          <span>Generate Meal Plan</span>
-        </button>
       </section>
 
       <!-- Right Panel: Results -->

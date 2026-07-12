@@ -36,6 +36,26 @@ const shoppingListContainer = document.getElementById("shopping-list-container")
 const instructionsContainer = document.getElementById("instructions-container");
 const copyListBtn = document.getElementById("copy-list-btn");
 
+// Settings Modal Elements
+const openSettingsBtn = document.getElementById("open-settings-btn");
+const closeSettingsBtn = document.getElementById("close-settings-btn");
+const saveSettingsBtn = document.getElementById("save-settings-btn");
+const settingsModal = document.getElementById("settings-modal");
+const apiKeyInput = document.getElementById("api-key-input");
+
+// Tab Toggle Elements
+const tabManualBtn = document.getElementById("tab-manual-btn");
+const tabAiBtn = document.getElementById("tab-ai-btn");
+const manualSection = document.getElementById("manual-controls-section");
+const aiSection = document.getElementById("ai-chat-section");
+
+// AI Chat Elements
+const chatMessagesContainer = document.getElementById("chat-messages-container");
+const chatTextInput = document.getElementById("chat-text-input");
+const chatSendBtn = document.getElementById("chat-send-btn");
+const chatKeyMissing = document.getElementById("chat-key-missing");
+const chatInputArea = document.getElementById("chat-input-area");
+
 // Handle meals slider change
 mealsSlider.addEventListener("input", (e) => {
   mealsValue.textContent = e.target.value;
@@ -51,9 +71,78 @@ ratingButtons.forEach(btn => {
   });
 });
 
+// Settings Modal Action handlers
+openSettingsBtn.addEventListener("click", () => {
+  apiKeyInput.value = localStorage.getItem("gemini_api_key") || "";
+  settingsModal.style.display = "flex";
+});
+
+closeSettingsBtn.addEventListener("click", () => {
+  settingsModal.style.display = "none";
+});
+
+settingsModal.addEventListener("click", (e) => {
+  if (e.target === settingsModal) {
+    settingsModal.style.display = "none";
+  }
+});
+
+saveSettingsBtn.addEventListener("click", () => {
+  const key = apiKeyInput.value.trim();
+  localStorage.setItem("gemini_api_key", key);
+  settingsModal.style.display = "none";
+  updateChatLockState();
+  if (key) {
+    openSettingsBtn.innerHTML = "<span>✓ AI Connected</span>";
+    openSettingsBtn.style.color = "var(--color-success)";
+    openSettingsBtn.style.borderColor = "var(--color-success)";
+  } else {
+    openSettingsBtn.innerHTML = "<span>⚙️ Setup AI Chat</span>";
+    openSettingsBtn.style.color = "";
+    openSettingsBtn.style.borderColor = "";
+  }
+});
+
+// Toggle controls panels
+tabManualBtn.addEventListener("click", () => {
+  tabManualBtn.classList.add("active");
+  tabAiBtn.classList.remove("active");
+  manualSection.style.display = "block";
+  aiSection.style.display = "none";
+});
+
+tabAiBtn.addEventListener("click", () => {
+  tabAiBtn.classList.add("active");
+  tabManualBtn.classList.remove("active");
+  aiSection.style.display = "flex";
+  manualSection.style.display = "none";
+  updateChatLockState();
+  // Scroll to bottom of chat
+  chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+});
+
+function updateChatLockState() {
+  const key = localStorage.getItem("gemini_api_key");
+  if (key) {
+    chatKeyMissing.style.display = "none";
+    chatInputArea.style.display = "flex";
+  } else {
+    chatKeyMissing.style.display = "block";
+    chatInputArea.style.display = "none";
+  }
+}
+
 // Initialize Application and load databases
 async function initializeApp() {
   try {
+    // Check initial API Key state
+    const existingKey = localStorage.getItem("gemini_api_key");
+    if (existingKey) {
+      openSettingsBtn.innerHTML = "<span>✓ AI Connected</span>";
+      openSettingsBtn.style.color = "var(--color-success)";
+      openSettingsBtn.style.borderColor = "var(--color-success)";
+    }
+
     // 1. Fetch Drive links first
     try {
       loadingText.textContent = "Loading Google Drive mappings...";
@@ -107,18 +196,15 @@ function hideLoadingOverlay() {
 function processParsedData(rawRows) {
   recipes = [];
   rawRows.forEach(row => {
-    // Basic verification
     const title = row['Title'] ? row['Title'].trim() : '';
     const ingredients = row['Ingredients'] ? row['Ingredients'].trim() : '';
     const method = row['Method'] ? row['Method'].trim() : '';
     
     if (!title || !ingredients || method.toLowerCase() === 'n/a' || method === '') return;
     
-    // Parse raw ingredients
     const rawList = ingredients.split(';').map(i => i.trim()).filter(i => i);
     if (rawList.length === 0) return;
     
-    // Normalize list for comparison
     const normalizedList = [];
     const shoppingList = [];
     
@@ -147,12 +233,10 @@ function processParsedData(rawRows) {
 function normalizeIngredient(rawText) {
   let clean = rawText.toLowerCase();
   
-  // Strip measurements, fractions, and indicators
   clean = clean.replace(/^\s*\d+[\d\/\s\.\-¼½¾⅓⅔⅛]*\s*(cups?|tbsp|tablespoons?|tsps?|teaspoons?|pounds?|lbs?|ounces?|oz|grams?|cloves?|cans?|jars?|tins?|bottles?|pinches?|slices?|pieces?|bunches?|sprigs?|heads?|bags?|containers?|halves|quarter|inch|inch-thick)\s*(of)?\s*/i, '');
   clean = clean.replace(/,\s*(peeled|chopped|sliced|diced|minced|melted|grated|slivered|crushed|to taste|for serving|optional|divided|cold|room temperature|finely|coarsely|beaten|drained|rinsed).*$/gi, '');
-  clean = clean.replace(/\s*\(.*?\)/g, ''); // strip parentheses
+  clean = clean.replace(/\s*\(.*?\)/g, '');
   
-  // Strip plural 's' at the end
   clean = clean.trim();
   if (clean.endsWith('s') && !clean.endsWith('less') && !clean.endsWith('cress')) {
     clean = clean.slice(0, -1);
@@ -178,7 +262,6 @@ function matchCriteria(recipe, category, includeKws, excludeKws, minRating) {
   if (category && category.toLowerCase() !== "all") {
     const rCat = recipe['Category'] ? recipe['Category'].toLowerCase() : '';
     if (rCat !== category.toLowerCase()) {
-      // Tags fallback check
       const tags = recipe['Tags'] ? recipe['Tags'].split(',').map(t => t.trim().toLowerCase()) : [];
       if (!tags.includes(category.toLowerCase())) {
         return false;
@@ -192,14 +275,14 @@ function matchCriteria(recipe, category, includeKws, excludeKws, minRating) {
   
   const titleAndIng = (recipe['Title'] + " " + recipe['Ingredients'] + " " + recipe['Tags']).toLowerCase();
   
-  // Exclude keywords (must exclude all)
+  // Exclude keywords
   if (excludeKws.length > 0) {
     for (const kw of excludeKws) {
       if (titleAndIng.includes(kw)) return false;
     }
   }
   
-  // Include keywords (OR match: must include at least one)
+  // Include keywords
   if (includeKws.length > 0) {
     let matchFound = false;
     for (const kw of includeKws) {
@@ -218,14 +301,12 @@ function matchCriteria(recipe, category, includeKws, excludeKws, minRating) {
 function planMeals(candidates, numMeals, includeKws) {
   if (candidates.length === 0) return [];
   
-  // Calculate recipe baseline quality score
   function getQualityScore(r) {
     const rating = r['Rating'] !== 'N/A' ? parseFloat(r['Rating']) : 0;
     const reviews = r['Reviews'] !== 'N/A' ? parseInt(r['Reviews']) : 0;
     return { rating, reviews };
   }
   
-  // Initial sort by quality descending
   const sorted = [...candidates].sort((a, b) => {
     const qa = getQualityScore(a);
     const qb = getQualityScore(b);
@@ -256,7 +337,6 @@ function planMeals(candidates, numMeals, includeKws) {
       const q = getQualityScore(r);
       const popularityFactor = Math.log(q.reviews + 1) * (q.rating / 5.0);
       
-      // Balance: -1.5 utility per new ingredient, +1.0 utility per log popularity
       let utility = -1.5 * numNew + 1.0 * popularityFactor;
       
       // Diversity penalty
@@ -267,8 +347,6 @@ function planMeals(candidates, numMeals, includeKws) {
             const matchCount = selected.filter(sel => 
               (sel['Title'] + " " + sel['Ingredients'] + " " + sel['Tags']).toLowerCase().includes(kw)
             ).length;
-            
-            // Subtract 4.0 points per already represented keyword
             utility -= 4.0 * matchCount;
           }
         }
@@ -322,7 +400,6 @@ function generateShoppingList(selectedMeals) {
     const category = classifyIngredient(norm);
     if (!classified[category]) classified[category] = [];
     
-    // Select the longest (most descriptive) raw text to show
     const detailedRaw = data.rawList.reduce((a, b) => a.length >= b.length ? a : b);
     classified[category].push({
       name: norm,
@@ -343,9 +420,7 @@ function triggerGenerateMealPlan() {
   
   savePreferences();
   
-  // Filter matches
   const candidates = recipes.filter(r => matchCriteria(r, category, includeKws, excludeKws, minRatingSelected));
-  console.log(`Found ${candidates.length} candidate recipes.`);
   
   if (candidates.length === 0) {
     alert("No recipes found matching your exact parameters. Please try adjusting your inclusion/exclusion keywords or lowering your rating requirement.");
@@ -358,10 +433,7 @@ function triggerGenerateMealPlan() {
     return;
   }
   
-  // Generate shopping list
   const shoppingList = generateShoppingList(selectedMeals);
-  
-  // Render results UI
   renderResultsUI(selectedMeals, shoppingList);
 }
 
@@ -374,7 +446,6 @@ function renderResultsUI(selectedMeals, shoppingList) {
   // 1. Render Menu Grid
   menuGrid.innerHTML = "";
   selectedMeals.forEach(r => {
-    // Determine Google Drive link
     const pdfFilename = r['PDF Filename'] ? r['PDF Filename'].replace(/ /g, '_') : '';
     let driveLink = '#';
     for (const [key, link] of Object.entries(driveLinks)) {
@@ -464,7 +535,6 @@ function renderResultsUI(selectedMeals, shoppingList) {
       </div>
     `;
     
-    // Toggle accordion functionality
     const header = accordion.querySelector(".accordion-header");
     const content = accordion.querySelector(".accordion-content");
     header.addEventListener("click", () => {
@@ -481,7 +551,6 @@ function renderResultsUI(selectedMeals, shoppingList) {
     instructionsContainer.appendChild(accordion);
   });
 
-  // Smooth scroll down to results on mobile devices
   if (window.innerWidth < 900) {
     planContainer.scrollIntoView({ behavior: 'smooth' });
   }
@@ -501,7 +570,6 @@ copyListBtn.addEventListener("click", () => {
     
     const items = catBlock.querySelectorAll(".shopping-label");
     items.forEach(item => {
-      // Clean up text
       const rawText = item.querySelector("span").textContent;
       listText += `- [ ] ${rawText}\n`;
     });
@@ -558,6 +626,224 @@ function savePreferences() {
     console.log("Could not save preferences to storage.");
   }
 }
+
+// ==========================================
+// AI CHAT CONVERSATIONAL ASSISTANT SYSTEM
+// ==========================================
+
+const systemPrompt = `You are a professional culinary assistant. Your task is to plan a weekly menu for the user based on their preferences, using ONLY the recipes provided in the candidates list.
+Do not invent any recipe names. Only select from the provided candidates list.
+Return your response as a JSON object matching this schema:
+{
+  "reply": "Your friendly conversational reply explaining your recommendations, highlighting shared ingredients, and answering any culinary questions they had.",
+  "selected_titles": ["Recipe Title 1", "Recipe Title 2", "Recipe Title 3"]
+}
+`;
+
+// Extract keywords from user prompt to filter candidates locally before sending to Gemini
+function searchLocalCandidates(userPrompt) {
+  const stopWords = new Set([
+    "a", "an", "the", "and", "or", "but", "if", "then", "plan", "meal", "meals", "dinner", "dinners",
+    "lunch", "breakfast", "using", "with", "no", "without", "seafood", "exclude", "for", "please", 
+    "can", "you", "i", "want", "suggest", "some", "any", "recipe", "recipes", "make", "cook", "week", "this"
+  ]);
+  
+  // Split user prompt into words
+  const words = userPrompt.toLowerCase().match(/\b\w+\b/g) || [];
+  const searchKws = words.filter(w => w.length > 2 && !stopWords.has(w));
+  
+  // Match exclusions: look for words after "no", "exclude", "without"
+  const excludeKws = [];
+  const excludeMatch = userPrompt.toLowerCase().match(/(?:no|exclude|without|excluding)\s+([\w\s,]+?)(?:and|with|for|using|$)/);
+  if (excludeMatch) {
+    const rawExclude = excludeMatch[1];
+    rawExclude.split(',').forEach(part => {
+      part.split(' ').map(w => w.trim()).forEach(w => {
+        if (w.length > 2 && !stopWords.has(w)) excludeKws.push(w);
+      });
+    });
+  }
+  
+  // Rank candidates based on how many keywords they match
+  const rankedCandidates = recipes.map(r => {
+    let score = 0;
+    const titleAndIng = (r['Title'] + " " + r['Ingredients'] + " " + r['Tags']).toLowerCase();
+    
+    // Exclude if it contains exclusions
+    if (excludeKws.length > 0) {
+      for (const ex of excludeKws) {
+        if (titleAndIng.includes(ex)) return { recipe: r, score: -1 };
+      }
+    }
+    
+    searchKws.forEach(kw => {
+      if (titleAndIng.includes(kw)) score += 1;
+      if (r['Title'].toLowerCase().includes(kw)) score += 3; // Boost title matches
+    });
+    
+    return { recipe: r, score: score };
+  });
+  
+  // Filter and sort candidates
+  const finalCandidates = rankedCandidates
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.recipe);
+    
+  // If no keyword matches, fallback to the top 40 most popular recipes in general
+  if (finalCandidates.length === 0) {
+    return recipes.slice(0, 40);
+  }
+  
+  // Return top 45 candidates to keep context size manageable
+  return finalCandidates.slice(0, 45);
+}
+
+// Query Gemini API directly via fetch (Zero-dependency REST)
+async function queryGemini(userMessage, candidatesList) {
+  const apiKey = localStorage.getItem("gemini_api_key");
+  if (!apiKey) throw new Error("API Key not found.");
+  
+  // Format candidates list to pass to Gemini
+  const candidatesText = candidatesList.map((c, idx) => {
+    return `${idx+1}. Title: "${c.Title}" | Rating: ${c.Rating}★ | Reviews: ${c.Reviews} | Time: ${c.TotalTime} | Yield: ${c.Yield}\nIngredients: ${c.parsed_ingredients.slice(0, 15).join(', ')}`;
+  }).join('\n\n');
+  
+  const prompt = `User Request: "${userMessage}"\n\nHere are the top candidate recipes matching their keywords:\n\n${candidatesText}\n\nSelect the best recipes that fit the user request, organize the meal plan, and explain your choices. Return JSON format.`;
+  
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: systemPrompt },
+            { text: prompt }
+          ]
+        }
+      ],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "OBJECT",
+          properties: {
+            reply: { type: "STRING" },
+            selected_titles: {
+              type: "ARRAY",
+              items: { type: "STRING" }
+            }
+          },
+          required: ["reply", "selected_titles"]
+        }
+      }
+    })
+  });
+  
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Gemini API error: ${response.status} - ${errText}`);
+  }
+  
+  const data = await response.json();
+  const rawText = data.candidates[0].content.parts[0].text;
+  return JSON.parse(rawText);
+}
+
+// Add a bubble message to the chat view
+function appendChatMessage(sender, text) {
+  const msgDiv = document.createElement("div");
+  msgDiv.className = `chat-message ${sender}`;
+  
+  const contentDiv = document.createElement("div");
+  contentDiv.className = "message-content";
+  contentDiv.textContent = text;
+  
+  msgDiv.appendChild(contentDiv);
+  chatMessagesContainer.appendChild(msgDiv);
+  
+  // Scroll to bottom
+  chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+}
+
+// Add typing loader bubble
+let typingIndicatorEl = null;
+function showTypingIndicator() {
+  if (typingIndicatorEl) return;
+  
+  typingIndicatorEl = document.createElement("div");
+  typingIndicatorEl.className = "chat-message assistant";
+  typingIndicatorEl.innerHTML = `
+    <div class="message-content">
+      <div class="typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  `;
+  chatMessagesContainer.appendChild(typingIndicatorEl);
+  chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  if (typingIndicatorEl) {
+    typingIndicatorEl.remove();
+    typingIndicatorEl = null;
+  }
+}
+
+// Trigger chat submit
+async function handleChatSubmit() {
+  const userText = chatTextInput.value.trim();
+  if (!userText) return;
+  
+  chatTextInput.value = "";
+  appendChatMessage("user", userText);
+  showTypingIndicator();
+  
+  try {
+    // 1. Search database locally to extract candidates
+    const candidates = searchLocalCandidates(userText);
+    console.log(`Local search returned ${candidates.length} candidates for Gemini AI evaluation.`);
+    
+    // 2. Call Gemini API
+    const result = await queryGemini(userText, candidates);
+    removeTypingIndicator();
+    
+    // 3. Render Assistant Conversational Reply
+    appendChatMessage("assistant", result.reply);
+    
+    // 4. Update the main UI plan if any recipes were selected by Gemini
+    if (result.selected_titles && result.selected_titles.length > 0) {
+      const selectedMeals = [];
+      result.selected_titles.forEach(title => {
+        const matched = recipes.find(r => r['Title'].toLowerCase() === title.toLowerCase() || r['Title'].toLowerCase().includes(title.toLowerCase()));
+        if (matched) selectedMeals.push(matched);
+      });
+      
+      if (selectedMeals.length > 0) {
+        const shoppingList = generateShoppingList(selectedMeals);
+        renderResultsUI(selectedMeals, shoppingList);
+      }
+    }
+    
+  } catch (err) {
+    removeTypingIndicator();
+    console.error("AI Chat failed:", err);
+    appendChatMessage("assistant", "⚠️ Sorry, I ran into an error connecting to the AI: " + err.message + ". Please make sure your Gemini API Key is valid and active.");
+  }
+}
+
+chatSendBtn.addEventListener("click", handleChatSubmit);
+chatTextInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    handleChatSubmit();
+  }
+});
 
 // Fire plan generation on button click
 generateBtn.addEventListener("click", triggerGenerateMealPlan);
