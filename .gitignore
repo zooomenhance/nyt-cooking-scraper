@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+token.pickle
+credentials.json
+nyt_recipes_pdfs/
+*.bak
+scratch/
