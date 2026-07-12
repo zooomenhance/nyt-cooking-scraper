@@ -41,6 +41,11 @@ def update_meal_plan():
             break
             
     print(f"Loaded {len(drive_files)} file links from Google Drive.")
+    
+    # Save the links mapping as JSON for the web interface
+    with open('drive_links.json', 'w', encoding='utf-8') as jf:
+        json.dump(drive_files, jf, indent=2)
+    print("Saved Drive links mapping to drive_links.json")
 
     if not os.path.exists(PLAN_FILE):
         print(f"Error: {PLAN_FILE} not found.")

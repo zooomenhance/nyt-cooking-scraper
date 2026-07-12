@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Weekly Meal Planner & Shopping Helper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generate ingredient-optimized weekly meal plans and shopping lists directly from your NYT Cooking database.">
+  
+  <!-- Modern Outfit Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- PapaParse for client-side CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+  <div class="app-background-glow"></div>
+
+  <div class="app-wrapper">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="logo-emoji">🍲</span>
+        <h1>Meal Planner</h1>
+      </div>
+      <p>Optimized grocery shopping & recipe curation</p>
+    </header>
+
+    <!-- Loading Screen -->
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p id="loading-text">Loading NYT Recipe Database...</p>
+    </div>
+
+    <!-- Main Content Grid -->
+    <main class="main-grid">
+      
+      <!-- Left Panel: Controls -->
+      <section class="controls-panel card">
+        <h2>Your Preferences</h2>
+        <p class="panel-subtitle">Tailor your menu for the week</p>
+        
+        <div class="form-group">
+          <label class="form-label" for="meals-slider">Number of Meals: <span id="meals-value" class="highlight-val">5</span></label>
+          <input type="range" id="meals-slider" min="1" max="7" value="5" class="slider-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="category-select">Meal Category</label>
+          <select id="category-select" class="form-input">
+            <option value="Dinner" selected>Dinner</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Desserts">Desserts / Sweet Treats</option>
+            <option value="all">Any Category (Mix & Match)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="include-input">Include Ingredients / Keywords</label>
+          <input type="text" id="include-input" placeholder="e.g. chicken thighs, ground turkey" class="form-input text-input">
+          <span class="input-tip">Separate multiple ingredients with commas (OR matching)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="exclude-input">Exclude Ingredients / Keywords</label>
+          <input type="text" id="exclude-input" placeholder="e.g. cilantro, shrimp" class="form-input text-input">
+          <span class="input-tip">Separate with commas (all will be omitted)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Minimum Recipe Rating</label>
+          <div class="rating-selector">
+            <button class="rating-btn" data-val="3">3★+</button>
+            <button class="rating-btn active" data-val="4">4★+</button>
+            <button class="rating-btn" data-val="4.5">4.5★+</button>
+          </div>
+        </div>
+
+        <button id="generate-btn" class="glow-button">
+          <span>Generate Meal Plan</span>
+        </button>
+      </section>
+
+      <!-- Right Panel: Results -->
+      <section class="results-panel">
+        
+        <!-- Welcome Screen (Shown before generation) -->
+        <div id="results-welcome" class="results-welcome card">
+          <div class="welcome-icon">🍳</div>
+          <h3>Ready to plan your week?</h3>
+          <p>Adjust your preferences on the left and tap the button to select popular recipes with high ingredient overlap, minimizing your supermarket trips.</p>
+        </div>
+
+        <!-- Generated Plan Container (Hidden initially) -->
+        <div id="plan-container" class="plan-container" style="display: none;">
+          
+          <!-- Section 1: Selected Menu -->
+          <div class="section-header">
+            <h2>🍲 This Week's Menu</h2>
+            <span class="badge" id="menu-meals-count">5 Meals</span>
+          </div>
+          
+          <div id="menu-grid" class="menu-grid">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Section 2: Interactive Grocery List -->
+          <div class="section-header" style="margin-top: 40px;">
+            <h2>🛒 Grocery Shopping List</h2>
+            <button id="copy-list-btn" class="secondary-btn">Copy to Clipboard</button>
+          </div>
+          
+          <div class="card shopping-list-card">
+            <p class="shopping-tip">Standard pantry items (salt, oil, butter, garlic, onions) are automatically excluded.</p>
+            <div id="shopping-list-container" class="shopping-list-container">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Section 3: Cooking Instructions -->
+          <div class="section-header" style="margin-top: 40px;">
+            <h2>📖 Prep & Cooking Reference</h2>
+          </div>
+          
+          <div id="instructions-container" class="instructions-container">
+            <!-- Populated dynamically -->
+          </div>
+
+        </div>
+        
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Powered by local NYT Cooking Scraper Database • Google Antigravity Pairs</p>
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
