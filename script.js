@@ -2,6 +2,8 @@
 let recipes = [];
 let driveLinks = {};
 let minRatingSelected = 4.0;
+let currentSelectedMeals = [];
+let sessionRejectedTitles = new Set();
 
 // Pantry elements to exclude from shopping lists
 const PANTRY_ITEMS = new Set([
@@ -413,6 +415,7 @@ function generateShoppingList(selectedMeals) {
 
 // Generate weekly plan triggered by UI
 function triggerGenerateMealPlan() {
+  sessionRejectedTitles.clear();
   const mealsCount = parseInt(mealsSlider.value);
   const category = categorySelect.value;
   
@@ -481,6 +484,7 @@ function getRecentRecipesList() {
 
 // Render Results layout
 function renderResultsUI(selectedMeals, shoppingList) {
+  currentSelectedMeals = selectedMeals;
   // Save to history on render
   saveMealPlanToHistory(selectedMeals);
 
@@ -517,6 +521,7 @@ function renderResultsUI(selectedMeals, shoppingList) {
         <div class="recipe-card-links">
           <a href="${r['URL']}" target="_blank" class="card-link-btn nyt">NYT Cooking</a>
           <a href="${driveLink}" target="_blank" class="card-link-btn drive" ${driveLink === '#' ? 'style="opacity: 0.5; pointer-events: none;"' : ''}>Drive PDF</a>
+          <button class="card-link-btn swap" data-title="${r['Title'].replace(/"/g, '&quot;')}">🔄 Swap Recipe</button>
         </div>
       </div>
     `;
@@ -596,8 +601,120 @@ function renderResultsUI(selectedMeals, shoppingList) {
     instructionsContainer.appendChild(accordion);
   });
 
+  // Attach swap button click listeners
+  const swapBtns = menuGrid.querySelectorAll(".card-link-btn.swap");
+  swapBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const title = btn.getAttribute("data-title");
+      handleSwapRecipe(title);
+    });
+  });
+
   if (window.innerWidth < 900) {
     planContainer.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// Swap out a single recipe and find the next best candidate
+function handleSwapRecipe(titleToSwap) {
+  const swapIndex = currentSelectedMeals.findIndex(r => r.Title === titleToSwap);
+  if (swapIndex === -1) return;
+  
+  // Reject this title so it is not chosen again in this session
+  sessionRejectedTitles.add(titleToSwap);
+  
+  // Extract active manual filters
+  const category = categorySelect.value;
+  const includeKws = includeInput.value.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+  const excludeKws = excludeInput.value.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+  
+  // Get active candidates excluding current selected list and rejected titles
+  let candidates = recipes.filter(r => {
+    if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
+    if (sessionRejectedTitles.has(r.Title)) return false;
+    return matchCriteria(r, category, includeKws, excludeKws, minRatingSelected);
+  });
+  
+  // Fallback: If no candidate matches, try relaxing rating to > 3.0
+  if (candidates.length === 0) {
+    candidates = recipes.filter(r => {
+      if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
+      if (sessionRejectedTitles.has(r.Title)) return false;
+      return matchCriteria(r, category, includeKws, excludeKws, 3.0);
+    });
+  }
+  
+  // Fallback: If still empty, relax inclusions
+  if (candidates.length === 0) {
+    candidates = recipes.filter(r => {
+      if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
+      if (sessionRejectedTitles.has(r.Title)) return false;
+      return matchCriteria(r, category, [], excludeKws, 3.0);
+    });
+  }
+  
+  // Fallback: If still empty, relax categories (any available recipe not in current list)
+  if (candidates.length === 0) {
+    candidates = recipes.filter(r => {
+      if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
+      if (sessionRejectedTitles.has(r.Title)) return false;
+      return matchCriteria(r, "all", [], excludeKws, 3.0);
+    });
+  }
+  
+  if (candidates.length === 0) {
+    alert("Could not find any suitable recipe in the database to swap this with.");
+    return;
+  }
+  
+  // Select the next best candidate that minimizes overlap with the REMAINING meals
+  const remainingMeals = currentSelectedMeals.filter((_, idx) => idx !== swapIndex);
+  const currentShoppingUnion = new Set();
+  remainingMeals.forEach(r => {
+    r['shopping_ingredients'].forEach(ing => currentShoppingUnion.add(ing));
+  });
+  
+  let bestNext = null;
+  let maxUtility = -Infinity;
+  
+  candidates.forEach(r => {
+    const recipeIngredients = new Set(r['shopping_ingredients']);
+    let numNew = 0;
+    recipeIngredients.forEach(ing => {
+      if (!currentShoppingUnion.has(ing)) numNew++;
+    });
+    
+    // Sort quality
+    const rating = r['Rating'] !== 'N/A' ? parseFloat(r['Rating']) : 0;
+    const reviews = r['Reviews'] !== 'N/A' ? parseInt(r['Reviews']) : 0;
+    const popularityFactor = Math.log(reviews + 1) * (rating / 5.0);
+    
+    let utility = -1.5 * numNew + 1.0 * popularityFactor;
+    
+    // Diversity penalties
+    if (includeKws && includeKws.length > 1) {
+      const titleAndIng = (r['Title'] + " " + r['Ingredients'] + " " + r['Tags']).toLowerCase();
+      for (const kw of includeKws) {
+        if (titleAndIng.includes(kw)) {
+          const matchCount = remainingMeals.filter(sel => 
+            (sel['Title'] + " " + sel['Ingredients'] + " " + sel['Tags']).toLowerCase().includes(kw)
+          ).length;
+          utility -= 4.0 * matchCount;
+        }
+      }
+    }
+    
+    if (utility > maxUtility) {
+      maxUtility = utility;
+      bestNext = r;
+    }
+  });
+  
+  if (bestNext) {
+    // Replace the meal and update the UI!
+    currentSelectedMeals[swapIndex] = bestNext;
+    const shoppingList = generateShoppingList(currentSelectedMeals);
+    renderResultsUI(currentSelectedMeals, shoppingList);
   }
 }
 
@@ -880,6 +997,7 @@ function removeTypingIndicator() {
 
 // Trigger chat submit
 async function handleChatSubmit() {
+  sessionRejectedTitles.clear();
   const userText = chatTextInput.value.trim();
   if (!userText) return;
   

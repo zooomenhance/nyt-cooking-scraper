@@ -692,6 +692,21 @@ body {
   background: rgba(59, 130, 246, 0.18);
 }
 
+.card-link-btn.swap {
+  background: rgba(230, 126, 34, 0.08);
+  border: 1px solid rgba(230, 126, 34, 0.22);
+  color: #e67e22;
+  grid-column: span 2;
+  cursor: pointer;
+  font-family: var(--font-base);
+  margin-top: 4px;
+}
+
+.card-link-btn.swap:hover {
+  background: rgba(230, 126, 34, 0.16);
+  box-shadow: 0 0 8px rgba(230, 126, 34, 0.15);
+}
+
 /* Secondary Button styling */
 .secondary-btn {
   background: rgba(255, 255, 255, 0.05);
