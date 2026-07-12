@@ -437,8 +437,52 @@ function triggerGenerateMealPlan() {
   renderResultsUI(selectedMeals, shoppingList);
 }
 
+// Save generated plan to history
+function saveMealPlanToHistory(selectedMeals) {
+  try {
+    let history = JSON.parse(localStorage.getItem("meal_plan_history") || "[]");
+    const now = Date.now();
+    
+    const entry = {
+      timestamp: now,
+      recipes: selectedMeals.map(r => r.Title)
+    };
+    history.push(entry);
+    
+    // Keep only last 60 days
+    const cutoff = now - 60 * 24 * 60 * 60 * 1000;
+    history = history.filter(h => h.timestamp > cutoff);
+    
+    localStorage.setItem("meal_plan_history", JSON.stringify(history));
+  } catch (e) {
+    console.log("Could not save history:", e);
+  }
+}
+
+// Get recipe titles planned in the last 14 days
+function getRecentRecipesList() {
+  try {
+    const history = JSON.parse(localStorage.getItem("meal_plan_history") || "[]");
+    const now = Date.now();
+    const twoWeeksAgo = now - 14 * 24 * 60 * 60 * 1000;
+    
+    const recent = new Set();
+    history.forEach(entry => {
+      if (entry.timestamp > twoWeeksAgo) {
+        entry.recipes.forEach(r => recent.add(r));
+      }
+    });
+    return [...recent];
+  } catch (e) {
+    return [];
+  }
+}
+
 // Render Results layout
 function renderResultsUI(selectedMeals, shoppingList) {
+  // Save to history on render
+  saveMealPlanToHistory(selectedMeals);
+
   resultsWelcome.style.display = "none";
   planContainer.style.display = "block";
   menuMealsCount.textContent = `${selectedMeals.length} Meals`;
@@ -633,9 +677,15 @@ function savePreferences() {
 
 const systemPrompt = `You are a professional culinary assistant. Your task is to plan a weekly menu for the user based on their preferences, using ONLY the recipes provided in the candidates list.
 Do not invent any recipe names. Only select from the provided candidates list.
+
+IMPORTANT BEHAVIORAL RULES:
+1. Do not recommend or select any recipes listed in the "Recently Planned Recipes (Last 2 Weeks)" block in the prompt, unless the user specifically asks you to repeat them.
+2. If the user asks for a mix of proteins, a variety, or mix-and-match ingredients, make sure to select recipes containing different protein types (e.g., mix chicken thighs, ground turkey, beef, vegetarian) instead of repeating the same protein.
+3. Exclude any seafood recipes if the user requests it.
+
 Return your response as a JSON object matching this schema:
 {
-  "reply": "Your friendly conversational reply explaining your recommendations, highlighting shared ingredients, and answering any culinary questions they had.",
+  "reply": "Your friendly conversational reply explaining your recommendations, highlighting how you met their constraints, noting any shared ingredients, and answering any culinary questions they had.",
   "selected_titles": ["Recipe Title 1", "Recipe Title 2", "Recipe Title 3"]
 }
 `;
@@ -704,12 +754,18 @@ async function queryGemini(userMessage, candidatesList) {
   const apiKey = localStorage.getItem("gemini_api_key");
   if (!apiKey) throw new Error("API Key not found.");
   
+  // Fetch recently planned recipes list (last 14 days)
+  const recentRecipes = getRecentRecipesList();
+  const recentRecipesText = recentRecipes.length > 0 
+    ? `Recently Planned Recipes (Last 2 Weeks - DO NOT select these unless explicitly requested):\n- ${recentRecipes.join('\n- ')}` 
+    : 'Recently Planned Recipes (Last 2 Weeks): None.';
+  
   // Format candidates list to pass to Gemini
   const candidatesText = candidatesList.map((c, idx) => {
     return `${idx+1}. Title: "${c.Title}" | Rating: ${c.Rating}★ | Reviews: ${c.Reviews} | Time: ${c.TotalTime} | Yield: ${c.Yield}\nIngredients: ${c.parsed_ingredients.slice(0, 15).join(', ')}`;
   }).join('\n\n');
   
-  const prompt = `User Request: "${userMessage}"\n\nHere are the top candidate recipes matching their keywords:\n\n${candidatesText}\n\nSelect the best recipes that fit the user request, organize the meal plan, and explain your choices. Return JSON format.`;
+  const prompt = `User Request: "${userMessage}"\n\n${recentRecipesText}\n\nHere are the top candidate recipes matching their keywords:\n\n${candidatesText}\n\nSelect the best recipes that fit the user request, organize the meal plan, and explain your choices. Return JSON format.`;
   
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
     method: "POST",
