@@ -4,6 +4,7 @@ let driveLinks = {};
 let minRatingSelected = 4.0;
 let currentSelectedMeals = [];
 let sessionRejectedTitles = new Set();
+let currentSessionCandidates = [];
 
 // Pantry elements to exclude from shopping lists
 const PANTRY_ITEMS = new Set([
@@ -425,6 +426,7 @@ function triggerGenerateMealPlan() {
   savePreferences();
   
   const candidates = recipes.filter(r => matchCriteria(r, category, includeKws, excludeKws, minRatingSelected));
+  currentSessionCandidates = candidates;
   
   if (candidates.length === 0) {
     alert("No recipes found matching your exact parameters. Please try adjusting your inclusion/exclusion keywords or lowering your rating requirement.");
@@ -623,43 +625,46 @@ function handleSwapRecipe(titleToSwap) {
   // Reject this title so it is not chosen again in this session
   sessionRejectedTitles.add(titleToSwap);
   
-  // Extract active manual filters
-  const category = categorySelect.value;
+  // Try pulling candidates from the active generation's candidates list first!
+  let candidates = [];
+  if (currentSessionCandidates && currentSessionCandidates.length > 0) {
+    candidates = currentSessionCandidates.filter(r => {
+      if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
+      if (sessionRejectedTitles.has(r.Title)) return false;
+      return true;
+    });
+  }
+  
+  // Fallback: If no candidate fits from currentSessionCandidates, fallback to broad search
   const includeKws = includeInput.value.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
-  const excludeKws = excludeInput.value.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
-  
-  // Get active candidates excluding current selected list and rejected titles
-  let candidates = recipes.filter(r => {
-    if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
-    if (sessionRejectedTitles.has(r.Title)) return false;
-    return matchCriteria(r, category, includeKws, excludeKws, minRatingSelected);
-  });
-  
-  // Fallback: If no candidate matches, try relaxing rating to > 3.0
   if (candidates.length === 0) {
+    console.log("Exhausted session candidates, running broad fallback...");
+    const category = categorySelect.value;
+    const excludeKws = excludeInput.value.split(',').map(k => k.trim().toLowerCase()).filter(k => k);
+    
     candidates = recipes.filter(r => {
       if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
       if (sessionRejectedTitles.has(r.Title)) return false;
-      return matchCriteria(r, category, includeKws, excludeKws, 3.0);
+      return matchCriteria(r, category, includeKws, excludeKws, minRatingSelected);
     });
-  }
-  
-  // Fallback: If still empty, relax inclusions
-  if (candidates.length === 0) {
-    candidates = recipes.filter(r => {
-      if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
-      if (sessionRejectedTitles.has(r.Title)) return false;
-      return matchCriteria(r, category, [], excludeKws, 3.0);
-    });
-  }
-  
-  // Fallback: If still empty, relax categories (any available recipe not in current list)
-  if (candidates.length === 0) {
-    candidates = recipes.filter(r => {
-      if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
-      if (sessionRejectedTitles.has(r.Title)) return false;
-      return matchCriteria(r, "all", [], excludeKws, 3.0);
-    });
+    
+    // Fallback: If still empty, relax rating to > 3.0
+    if (candidates.length === 0) {
+      candidates = recipes.filter(r => {
+        if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
+        if (sessionRejectedTitles.has(r.Title)) return false;
+        return matchCriteria(r, category, includeKws, excludeKws, 3.0);
+      });
+    }
+    
+    // Fallback: If still empty, relax inclusions
+    if (candidates.length === 0) {
+      candidates = recipes.filter(r => {
+        if (currentSelectedMeals.some(sel => sel.Title === r.Title)) return false;
+        if (sessionRejectedTitles.has(r.Title)) return false;
+        return matchCriteria(r, category, [], excludeKws, 3.0);
+      });
+    }
   }
   
   if (candidates.length === 0) {
@@ -1008,6 +1013,7 @@ async function handleChatSubmit() {
   try {
     // 1. Search database locally to extract candidates
     const candidates = searchLocalCandidates(userText);
+    currentSessionCandidates = candidates;
     console.log(`Local search returned ${candidates.length} candidates for Gemini AI evaluation.`);
     
     // 2. Call Gemini API
