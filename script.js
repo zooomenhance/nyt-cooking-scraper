@@ -728,7 +728,23 @@ function getPlainTextShoppingList() {
   const checkboxes = shoppingListContainer.querySelectorAll(".shopping-label");
   if (checkboxes.length === 0) return "";
   
-  let listText = "🛒 Weekly Optimized Shopping List:\n\n";
+  let listText = "🍲 This Week's Menu:\n";
+  currentSelectedMeals.forEach((r, idx) => {
+    const pdfFilename = r['PDF Filename'] ? r['PDF Filename'].replace(/ /g, '_') : '';
+    let driveLink = '';
+    for (const [key, link] of Object.entries(driveLinks)) {
+      if (key.replace(/ /g, '_') === pdfFilename || key === pdfFilename || key.replace('.pdf','') === r['Title']) {
+        driveLink = link;
+        break;
+      }
+    }
+    listText += `${idx + 1}. ${r.Title}\n`;
+    if (driveLink && driveLink !== '#') {
+      listText += `   📄 Drive PDF: ${driveLink}\n`;
+    }
+  });
+  listText += "\n🛒 Grocery Shopping List:\n\n";
+  
   const categories = shoppingListContainer.querySelectorAll(".shopping-category-block");
   
   categories.forEach(catBlock => {
