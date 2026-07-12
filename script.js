@@ -35,6 +35,7 @@ const menuGrid = document.getElementById("menu-grid");
 const shoppingListContainer = document.getElementById("shopping-list-container");
 const instructionsContainer = document.getElementById("instructions-container");
 const copyListBtn = document.getElementById("copy-list-btn");
+const shareListBtn = document.getElementById("share-list-btn");
 
 // Settings Modal Elements
 const openSettingsBtn = document.getElementById("open-settings-btn");
@@ -600,10 +601,10 @@ function renderResultsUI(selectedMeals, shoppingList) {
   }
 }
 
-// Copy plain text shopping list to clipboard
-copyListBtn.addEventListener("click", () => {
+// Helper to compile plain text shopping list
+function getPlainTextShoppingList() {
   const checkboxes = shoppingListContainer.querySelectorAll(".shopping-label");
-  if (checkboxes.length === 0) return;
+  if (checkboxes.length === 0) return "";
   
   let listText = "🛒 Weekly Optimized Shopping List:\n\n";
   const categories = shoppingListContainer.querySelectorAll(".shopping-category-block");
@@ -619,6 +620,13 @@ copyListBtn.addEventListener("click", () => {
     });
     listText += "\n";
   });
+  return listText;
+}
+
+// Copy plain text shopping list to clipboard
+copyListBtn.addEventListener("click", () => {
+  const listText = getPlainTextShoppingList();
+  if (!listText) return;
   
   navigator.clipboard.writeText(listText).then(() => {
     const originalText = copyListBtn.textContent;
@@ -634,6 +642,24 @@ copyListBtn.addEventListener("click", () => {
     alert("Could not copy list to clipboard: " + err);
   });
 });
+
+// Setup Mobile Web Share API button if supported (iOS Safari / Android Chrome)
+if (navigator.share) {
+  shareListBtn.style.display = "inline-block";
+  shareListBtn.addEventListener("click", () => {
+    const listText = getPlainTextShoppingList();
+    if (!listText) return;
+    
+    navigator.share({
+      title: "🛒 Weekly Grocery List",
+      text: listText
+    }).catch(err => {
+      console.log("Web Share failed:", err);
+    });
+  });
+} else {
+  shareListBtn.style.display = "none";
+}
 
 // Load preferences from localStorage
 function loadSavedPreferences() {
