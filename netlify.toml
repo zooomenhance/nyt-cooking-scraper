@@ -1,0 +1,16 @@
+# Netlify Configuration File for NYT Cooking Meal Planner
+
+[build]
+  # Publish the root directory since it is a pure static app
+  publish = "."
+
+# Performance Optimizations: Cache the static recipe database
+[[headers]]
+  for = "/nyt_recipes_index.csv"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, must-revalidate" # Cache for 1 day
+
+[[headers]]
+  for = "/drive_links.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate" # Cache for 1 hour
