@@ -915,7 +915,7 @@ async function queryGemini(userMessage, candidatesList) {
   
   const prompt = `User Request: "${userMessage}"\n\n${recentRecipesText}\n\nHere are the top candidate recipes matching their keywords:\n\n${candidatesText}\n\nSelect the best recipes that fit the user request, organize the meal plan, and explain your choices. Return JSON format.`;
   
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
