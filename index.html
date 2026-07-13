@@ -7,10 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Generate ingredient-optimized weekly meal plans and shopping lists directly from your NYT Cooking database, guided by an AI assistant.">
   
-  <!-- Modern Outfit Typography from Google Fonts -->
+  <!-- Modern Editorial Fonts from Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="styles.css">
   
@@ -19,23 +19,20 @@
 </head>
 <body>
 
-  <div class="app-background-glow"></div>
-
   <div class="app-wrapper">
     
     <!-- Top Header -->
     <header class="app-header">
       <div class="logo-area">
-        <span class="logo-emoji">🍲</span>
         <div>
-          <h1>Meal Planner</h1>
-          <p>Optimized grocery shopping & recipe curation</p>
+          <h1>NYT Cooking Meal Planner</h1>
+          <p>Curated menu planning & optimized shopping lists</p>
         </div>
       </div>
       
       <!-- Settings Button -->
       <button id="open-settings-btn" class="settings-trigger-btn" title="AI Settings">
-        <span>⚙️ Setup AI Chat</span>
+        <span>Setup AI Assistant</span>
       </button>
     </header>
 
@@ -43,7 +40,7 @@
     <div id="settings-modal" class="modal-overlay" style="display: none;">
       <div class="settings-card card">
         <button id="close-settings-btn" class="modal-close" aria-label="Close settings">&times;</button>
-        <h3>🤖 Setup Gemini AI Assistant</h3>
+        <h3>Setup Gemini AI Assistant</h3>
         <p class="settings-desc">To talk with the planner, enter a Gemini API Key. Your key is stored locally in your browser's private secure storage and is never sent to any server other than Google's API.</p>
         
         <div class="form-group">
@@ -130,7 +127,7 @@
           
           <!-- Locked State (when key is missing) -->
           <div id="chat-key-missing" class="chat-lock-msg" style="display: none;">
-            <p>🔒 Setup your Gemini API Key in Settings (top right) to enable conversational meal planning!</p>
+            <p>Setup your Gemini API Key in Settings (top right) to enable conversational meal planning.</p>
           </div>
 
           <div id="chat-input-area" class="chat-input-area">
@@ -146,7 +143,6 @@
         
         <!-- Welcome Screen (Shown before generation) -->
         <div id="results-welcome" class="results-welcome card">
-          <div class="welcome-icon">🍳</div>
           <h3>Ready to plan your week?</h3>
           <p>Adjust your preferences on the left and tap the button to select popular recipes with high ingredient overlap, minimizing your supermarket trips.</p>
         </div>
@@ -156,7 +152,7 @@
           
           <!-- Section 1: Selected Menu -->
           <div class="section-header">
-            <h2>🍲 This Week's Menu</h2>
+            <h2>This Week's Menu</h2>
             <span class="badge" id="menu-meals-count">5 Meals</span>
           </div>
           
@@ -166,7 +162,7 @@
 
           <!-- Section 2: Interactive Grocery List -->
           <div class="section-header" style="margin-top: 40px;">
-            <h2>🛒 Grocery Shopping List</h2>
+            <h2>Grocery Shopping List</h2>
             <div style="display: flex; gap: 8px;">
               <button id="copy-list-btn" class="secondary-btn">Copy to Clipboard</button>
               <button id="share-list-btn" class="secondary-btn" style="display: none;">Share List</button>
@@ -182,7 +178,7 @@
 
           <!-- Section 3: Cooking Instructions -->
           <div class="section-header" style="margin-top: 40px;">
-            <h2>📖 Prep & Cooking Reference</h2>
+            <h2>Prep & Cooking Reference</h2>
           </div>
           
           <div id="instructions-container" class="instructions-container">

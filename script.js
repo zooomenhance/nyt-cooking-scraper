@@ -506,7 +506,7 @@ function renderResultsUI(selectedMeals, shoppingList) {
       }
     }
     
-    const imageTag = r['Image URL'] ? `<img src="${r['Image URL']}" alt="${r['Title']}" loading="lazy">` : `<div style="height: 100%; display: flex; justify-content: center; align-items: center; background: #1a1a24; font-size: 2rem;">🥘</div>`;
+    const imageTag = r['Image URL'] ? `<img src="${r['Image URL']}" alt="${r['Title']}" loading="lazy">` : `<div style="height: 100%; display: flex; justify-content: center; align-items: center; background: #faf8f5; color: #8c867e; font-size: 1.1rem; font-family: var(--font-serif); font-style: italic;">No Image Available</div>`;
     
     const card = document.createElement("div");
     card.className = "recipe-card card";
@@ -518,12 +518,12 @@ function renderResultsUI(selectedMeals, shoppingList) {
         <h3 class="recipe-card-title">${r['Title']}</h3>
         <div class="recipe-card-meta">
           <span class="recipe-card-rating">★ ${r['Rating']}</span>
-          <span>⏱️ ${r['Total Time'] || 'n/a'}</span>
+          <span>${r['Total Time'] || 'n/a'}</span>
         </div>
         <div class="recipe-card-links">
           <a href="${r['URL']}" target="_blank" class="card-link-btn nyt">NYT Cooking</a>
           <a href="${driveLink}" target="_blank" class="card-link-btn drive" ${driveLink === '#' ? 'style="opacity: 0.5; pointer-events: none;"' : ''}>Drive PDF</a>
-          <button class="card-link-btn swap" data-title="${r['Title'].replace(/"/g, '&quot;')}">🔄 Swap Recipe</button>
+          <button class="card-link-btn swap" data-title="${r['Title'].replace(/"/g, '&quot;')}">Swap Recipe</button>
         </div>
       </div>
     `;
