@@ -753,8 +753,10 @@ function getPlainTextShoppingList() {
     
     const items = catBlock.querySelectorAll(".shopping-label");
     items.forEach(item => {
+      const checkbox = item.querySelector(".shopping-checkbox");
+      const isChecked = checkbox && checkbox.checked;
       const rawText = item.querySelector("span").textContent;
-      listText += `- [ ] ${rawText}\n`;
+      listText += `${isChecked ? '- [x]' : '- [ ]'} ${rawText}\n`;
     });
     listText += "\n";
   });
@@ -1072,3 +1074,25 @@ generateBtn.addEventListener("click", triggerGenerateMealPlan);
 
 // Run initialization
 initializeApp();
+
+// Time Machine (1998) Mode Toggle Logic
+const retroToggle = document.getElementById("retro-mode-toggle");
+
+if (retroToggle) {
+  // Load initial state
+  const isRetro = localStorage.getItem("retro_mode") === "true";
+  retroToggle.checked = isRetro;
+  if (isRetro) {
+    document.body.classList.add("retro-mode");
+  }
+  
+  retroToggle.addEventListener("change", () => {
+    if (retroToggle.checked) {
+      document.body.classList.add("retro-mode");
+      localStorage.setItem("retro_mode", "true");
+    } else {
+      document.body.classList.remove("retro-mode");
+      localStorage.setItem("retro_mode", "false");
+    }
+  });
+}

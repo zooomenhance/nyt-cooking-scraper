@@ -852,3 +852,624 @@ body {
     gap: 16px;
   }
 }
+
+/* ==========================================================================
+   Time Machine Header Layout
+   ========================================================================== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.time-machine-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  border-radius: 2px;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.time-machine-toggle:hover {
+  border-color: var(--color-text-primary);
+  color: var(--color-text-primary);
+}
+
+.time-machine-toggle input {
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   TIME MACHINE OVERRIDES (.retro-mode)
+   ========================================================================== */
+
+@keyframes retro-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.retro-mode .blink {
+  animation: retro-blink 1s infinite;
+}
+
+.retro-mode {
+  background-color: #000000 !important;
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px) !important;
+  background-size: 200px 200px, 280px 280px, 320px 320px !important;
+  background-position: 0 0, 30px 40px, 120px 240px !important;
+  color: #00ff00 !important;
+  font-family: "Comic Sans MS", "Comic Sans", cursive, sans-serif !important;
+}
+
+.retro-mode .app-wrapper {
+  max-width: 1000px;
+  margin: 0 auto;
+  border: 10px double #ffff00;
+  background: rgba(0,0,0,0.85);
+  padding: 20px;
+}
+
+.retro-mode .app-header {
+  border-bottom: 5px red ridge !important;
+  padding-bottom: 20px !important;
+  margin-bottom: 30px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.retro-mode .logo-area h1 {
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-size: 3rem !important;
+  font-weight: 900 !important;
+  color: #ff00ff !important;
+  text-shadow: 3px 3px 0px #00ffff, -3px -3px 0px #ff0000 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+}
+
+.retro-mode .app-header p {
+  color: #00ffff !important;
+  font-size: 1.2rem !important;
+  font-weight: bold !important;
+  margin-top: 5px !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-style: normal !important;
+}
+
+.retro-mode .logo-area::before {
+  content: "⚡️⚡️⚡️ CHIEF CULINARY ZONE v1.02 ⚡️⚡️⚡️";
+  display: block;
+  color: #ff3300;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  letter-spacing: 4px;
+  font-weight: 800;
+  animation: retro-blink 1.2s infinite;
+}
+
+.retro-mode .time-machine-toggle {
+  background: #c0c0c0 !important;
+  color: #000000 !important;
+  border: 3px outset #ffffff !important;
+  box-shadow: 2px 2px 0px #000 !important;
+  border-radius: 0px !important;
+}
+
+.retro-mode .settings-trigger-btn {
+  background: #c0c0c0 !important;
+  color: #000000 !important;
+  border: 3px outset #ffffff !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  box-shadow: 2px 2px 0px #000 !important;
+  border-radius: 0px !important;
+}
+
+.retro-mode .settings-trigger-btn:hover {
+  background: #a0a0a0 !important;
+  border-style: inset !important;
+}
+
+.retro-mode .card {
+  background: #c0c0c0 !important;
+  color: #000000 !important;
+  border: 4px outset #ffffff !important;
+  border-radius: 0px !important;
+  padding: 16px !important;
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.5) !important;
+}
+
+.retro-mode .main-grid {
+  display: grid !important;
+  grid-template-columns: 340px 1fr !important;
+  gap: 30px !important;
+}
+
+.retro-mode .panel-tabs {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  border: 2px inset #ffffff !important;
+  background: #808080 !important;
+  margin-bottom: 15px !important;
+  padding-bottom: 0px !important;
+}
+
+.retro-mode .panel-tab {
+  background: #808080 !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-weight: bold !important;
+  padding: 8px !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+}
+
+.retro-mode .panel-tab.active {
+  background: #c0c0c0 !important;
+  color: #000000 !important;
+  border: 2px outset #ffffff !important;
+}
+
+.retro-mode .panel-tab.active::after {
+  display: none !important;
+}
+
+.retro-mode .form-group {
+  margin-bottom: 15px !important;
+  border-bottom: 1px dashed #808080 !important;
+  padding-bottom: 12px !important;
+}
+
+.retro-mode .form-label {
+  display: block !important;
+  font-size: 0.85rem !important;
+  font-weight: bold !important;
+  color: #000080 !important;
+  margin-bottom: 6px !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+}
+
+.retro-mode .form-input {
+  width: 100% !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 3px inset #808080 !important;
+  border-radius: 0 !important;
+  padding: 6px !important;
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 0.85rem !important;
+}
+
+.retro-mode .slider-input {
+  width: 100% !important;
+  accent-color: #ff0000 !important;
+  height: 10px !important;
+  background: #808080 !important;
+}
+
+.retro-mode .rating-selector {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 6px !important;
+}
+
+.retro-mode .rating-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px outset #ffffff !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-weight: bold !important;
+  padding: 6px !important;
+  border-radius: 0px !important;
+}
+
+.retro-mode .rating-btn.active {
+  background: #000080 !important;
+  color: #ffffff !important;
+  border: 2px inset #ffffff !important;
+}
+
+.retro-mode .glow-button {
+  width: 100% !important;
+  background: #ff0000 !important;
+  color: #ffff00 !important;
+  border: 4px outset #ffcccc !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 900 !important;
+  padding: 10px !important;
+  cursor: pointer !important;
+  text-shadow: 1px 1px 0px #000 !important;
+  animation: retro-pulse 1s infinite alternate !important;
+  border-radius: 0px !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+}
+
+@keyframes retro-pulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.03); background: #ff5500; }
+}
+
+.retro-mode #ai-chat-section {
+  background: #000000 !important;
+  border: 3px inset #808080 !important;
+  color: #00ff00 !important;
+  font-family: "Courier New", Courier, monospace !important;
+  padding: 10px !important;
+  height: 380px !important;
+}
+
+.retro-mode .chat-messages-container {
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  flex: 1 !important;
+}
+
+.retro-mode .chat-message .message-content {
+  padding: 4px 8px !important;
+  font-size: 0.85rem !important;
+  line-height: 1.3 !important;
+}
+
+.retro-mode .chat-message.assistant .message-content::before {
+  content: "<GeminiAI> " !important;
+  color: #ffff00 !important;
+  font-weight: bold !important;
+}
+
+.retro-mode .chat-message.user .message-content::before {
+  content: "<Visitor> " !important;
+  color: #00ffff !important;
+  font-weight: bold !important;
+}
+
+.retro-mode .chat-message.assistant .message-content {
+  color: #00ff00 !important;
+  background: none !important;
+  border: none !important;
+}
+
+.retro-mode .chat-message.user .message-content {
+  color: #00ffff !important;
+  background: none !important;
+  border: none !important;
+}
+
+.retro-mode .chat-input-area {
+  display: flex !important;
+  gap: 6px !important;
+  border-top: 1px solid #00ff00 !important;
+  padding-top: 8px !important;
+  margin-top: 8px !important;
+}
+
+.retro-mode .chat-input-area input {
+  background: #000000 !important;
+  color: #00ff00 !important;
+  border: 1px solid #00ff00 !important;
+  font-family: "Courier New", Courier, monospace !important;
+}
+
+.retro-mode .chat-send-btn {
+  background: #c0c0c0 !important;
+  color: #000000 !important;
+  border: 2px outset #ffffff !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-weight: bold !important;
+}
+
+.retro-mode .chat-send-btn:hover {
+  background: #a0a0a0 !important;
+  border-style: inset !important;
+}
+
+.retro-mode .chat-lock-msg {
+  border: 2px dashed #ff0000 !important;
+  background: #000000 !important;
+  color: #ff0000 !important;
+  font-family: "Courier New", Courier, monospace !important;
+  padding: 10px !important;
+  text-align: center !important;
+}
+
+.retro-mode .results-welcome {
+  text-align: center !important;
+  padding: 40px !important;
+  border: 4px double #ff00ff !important;
+}
+
+.retro-mode .results-welcome h3 {
+  font-size: 1.8rem !important;
+  color: #ff00ff !important;
+  margin-bottom: 15px !important;
+  text-decoration: underline !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}
+
+.retro-mode .results-welcome p {
+  color: #000000 !important;
+  font-weight: bold !important;
+}
+
+.retro-mode .section-header {
+  border-bottom: 3px double #ffff00 !important;
+  padding-bottom: 4px !important;
+  margin-bottom: 15px !important;
+}
+
+.retro-mode .section-header h2 {
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-size: 1.8rem !important;
+  color: #ffff00 !important;
+  text-shadow: 1px 1px 0px #000 !important;
+}
+
+.retro-mode .badge {
+  background: #ff00ff !important;
+  color: #ffffff !important;
+  font-family: "Courier New", Courier, monospace !important;
+  font-weight: bold !important;
+  border: 1px solid #ffffff !important;
+  padding: 2px 6px !important;
+}
+
+.retro-mode .menu-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+  gap: 20px !important;
+}
+
+.retro-mode .recipe-card {
+  background: #c0c0c0 !important;
+  border: 4px outset #ffffff !important;
+  color: #000000 !important;
+  padding: 10px !important;
+  border-radius: 0px !important;
+}
+
+.retro-mode .recipe-image-wrap {
+  border: 2px inset #808080 !important;
+  height: 150px !important;
+  margin-bottom: 8px !important;
+  width: 100% !important;
+}
+
+/* Constrain pictures in retro mode so they aren't too big */
+.retro-mode .recipe-image-wrap img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+}
+
+.retro-mode .recipe-card-title {
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  line-height: 1.2 !important;
+  margin-bottom: 6px !important;
+  color: #000080 !important;
+  text-decoration: underline !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}
+
+.retro-mode .recipe-card-meta {
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 0.8rem !important;
+  color: #555 !important;
+  border-bottom: 1px dashed #808080 !important;
+  padding-bottom: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+.retro-mode .recipe-card-rating {
+  color: #c00000 !important;
+  font-weight: bold !important;
+}
+
+.retro-mode .recipe-card-links {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+}
+
+.retro-mode .card-link-btn {
+  background: #c0c0c0 !important;
+  border: 2px outset #ffffff !important;
+  color: #000000 !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-weight: bold !important;
+  font-size: 0.75rem !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  padding: 4px !important;
+}
+
+.retro-mode .card-link-btn:hover {
+  background: #a0a0a0 !important;
+  border-style: inset !important;
+}
+
+.retro-mode .card-link-btn.swap {
+  background: #ffcc00 !important;
+  border-color: #ffeeaa !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}
+
+.retro-mode .shopping-list-card {
+  background: #ffffff !important;
+  border: 3px inset #808080 !important;
+  padding: 15px !important;
+  border-radius: 0px !important;
+}
+
+.retro-mode .shopping-tip {
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 0.75rem !important;
+  color: #777 !important;
+}
+
+.retro-mode .shopping-list-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.retro-mode .shopping-category-block h3 {
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  color: #ffffff !important;
+  background: #000080 !important;
+  padding: 4px 8px !important;
+  margin-bottom: 10px !important;
+  border-bottom: none !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}
+
+.retro-mode .shopping-label {
+  color: #000000 !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}
+
+.retro-mode .shopping-checkbox {
+  width: 16px !important;
+  height: 16px !important;
+  border: 2px inset #808080 !important;
+  margin-top: 1px !important;
+}
+
+.retro-mode .shopping-checkbox:checked {
+  background-color: transparent !important;
+  border-color: #808080 !important;
+}
+
+.retro-mode .shopping-checkbox:checked::after {
+  color: #000000 !important;
+  top: -4px !important;
+  left: 1px !important;
+  font-size: 12px !important;
+}
+
+.retro-mode .shopping-checkbox:checked + span {
+  text-decoration: line-through !important;
+  color: #888888 !important;
+}
+
+.retro-mode .secondary-btn {
+  background: #c0c0c0 !important;
+  border: 2px outset #ffffff !important;
+  color: #000000 !important;
+  font-weight: bold !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  cursor: pointer !important;
+}
+
+.retro-mode .secondary-btn:hover {
+  background: #a0a0a0 !important;
+  border-style: inset !important;
+}
+
+.retro-mode .instruction-accordion {
+  border: 3px outset #ffffff !important;
+  background: #c0c0c0 !important;
+  margin-bottom: 8px !important;
+  border-radius: 0px !important;
+}
+
+.retro-mode .accordion-header {
+  padding: 10px 15px !important;
+  font-weight: bold !important;
+  background: #e0e0e0 !important;
+}
+
+.retro-mode .accordion-header:hover {
+  background: #d0d0d0 !important;
+}
+
+.retro-mode .accordion-title {
+  color: #000000 !important;
+  font-size: 0.95rem !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}
+
+.retro-mode .accordion-content {
+  background: #ffffff !important;
+  border-top: 3px inset #808080 !important;
+  padding: 15px !important;
+}
+
+.retro-mode .prep-section-title {
+  color: #000080 !important;
+  font-weight: bold !important;
+  font-size: 0.85rem !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+}
+
+.retro-mode .prep-ingredients-list {
+  font-family: "Courier New", Courier, monospace !important;
+  font-size: 0.8rem !important;
+  margin-left: 15px !important;
+  margin-bottom: 10px !important;
+}
+
+.retro-mode .prep-method-text {
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+  font-size: 0.85rem !important;
+}
+
+.retro-mode .app-footer {
+  border-top: 4px yellow double !important;
+  padding-top: 20px !important;
+  margin-top: 40px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.retro-mode .app-footer::before {
+  content: "🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥 🔥" !important;
+  font-size: 1.2rem !important;
+  letter-spacing: 5px !important;
+}
+
+.retro-mode .app-footer p {
+  color: #ffff00 !important;
+  font-size: 0.8rem !important;
+  font-family: "Comic Sans MS", cursive, sans-serif !important;
+}
+
+.retro-mode .app-footer::after {
+  content: "You are visitor # [ 0 0 4 7 2 9 ]  | Best viewed in Netscape Navigator 4.0 at 800x600 resolution" !important;
+  display: block !important;
+  font-family: "Courier New", Courier, monospace !important;
+  color: #00ffff !important;
+  background: #222 !important;
+  border: 2px solid #555 !important;
+  padding: 6px 12px !important;
+  font-size: 0.8rem !important;
+  margin-top: 10px !important;
+  border-radius: 4px !important;
+}
